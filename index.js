@@ -36,12 +36,13 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Conexión MySQL
 const db = mysql.createConnection({
-  port:3306,
-  host: 'mysql-gustavo151.alwaysdata.net',
-  user: '419053',
-  password: 'laboratorio2',
-  database: 'gustavo151_artesano'
+  port: 3306,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
 });
+
 
 db.connect(err => {
   if (err) throw err;
