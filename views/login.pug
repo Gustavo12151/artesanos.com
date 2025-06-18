@@ -1,0 +1,23 @@
+//- views/login.pug - Con fondo de galería y formulario a la derecha
+
+extends layout
+
+block content
+
+  .login-page-container
+    .container.h-100.d-flex.justify-content-end.align-items-center 
+      .login-form-card.p-4.rounded.shadow-lg 
+        h2.text-center.mb-4.form-title Iniciar Sesión
+        if mensaje
+          .alert.alert-danger= mensaje
+        form(method="POST" action="/login")
+          .mb-3
+            label.form-label(for="email") Email
+            input.form-control(type="email" name="email" required)
+          .mb-3
+            label.form-label(for="password") Contraseña
+            input.form-control(type="password" name="password" required)
+          button.btn.btn-primary.w-100.mt-3(type="submit") Ingresar
+        p.text-center.mt-4
+          | ¿No tenés cuenta?
+          a(href="/register") Registrate aquí

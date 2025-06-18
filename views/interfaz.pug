@@ -1,0 +1,231 @@
+//- views/interfaz.pug
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{title ? title + ' - Artesanos.com' : 'Artesanos.com'}
+    
+    // Enlaces a Google Fonts (para Playfair Display e Inter)
+    link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap", rel="stylesheet")
+
+    // Enlaces a Bootstrap CSS y tu CSS personalizado
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+    link(rel="stylesheet", href="/css/styles.css") 
+    
+    // Enlace a Font Awesome para los iconos
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css")
+
+  body
+    // Navbar - Estructura completa de la barra de navegación
+    nav.navbar.navbar-expand-lg.fixed-top
+      .container
+        a.navbar-brand(href="/interfaz") Artesanos.com
+
+        .d-flex.align-items-center
+          .dropdown.me-3
+            button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")
+              | 🔔 Notificaciones
+              if solicitudesPendientes && solicitudesPendientes.length > 0
+                span.badge.bg-danger.ms-1= solicitudesPendientes.length
+            ul.dropdown-menu
+              if solicitudesPendientes && solicitudesPendientes.length > 0
+                each solicitud in solicitudesPendientes
+                  li.dropdown-item
+                    .d-flex.flex-column
+                      span.fw-bold Solicitud de amistad de:
+                      a.text-decoration-none(href=`/perfil/${solicitud.solicitante_id}`)
+                        strong #{solicitud.nombre} #{solicitud.apellido || ''} (#{solicitud.username})
+                      .mt-2
+                        button.btn.btn-sm.btn-success.me-2(onclick=`aceptarSolicitud(${solicitud.solicitud_id})`) Aceptar
+                        button.btn.btn-sm.btn-danger(onclick=`rechazarSolicitud(${solicitud.solicitud_id})`) Rechazar
+                    hr.my-1
+              else
+                li
+                  a.dropdown-item(href="#") No hay notificaciones nuevas
+
+          .dropdown
+            button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")
+              | 👤 Mi Perfil
+            ul.dropdown-menu
+              li
+                a.dropdown-item(href="/perfil") Ver perfil
+              li
+                a.dropdown-item(href="/logout") Cerrar sesión
+
+    // Contenedor principal de la página
+    .main-content-wrapper.container
+      h4.text-end.text-muted.mb-4 Bienvenido #{session.usuario.nombre}
+
+      .mb-5.text-center
+        button.btn.btn-custom-primary.me-2(type="button" data-bs-toggle="modal" data-bs-target="#uploadImageModal") Subir Imagen
+        button.btn.btn-custom-secondary.me-2(type="button" data-bs-toggle="modal" data-bs-target="#eventModal") Evento
+        button.btn.btn-custom-primary(type="button" data-bs-toggle="modal" data-bs-target="#searchFriendsModal") Buscar Amigos
+
+      h3.mb-3.text-center Imágenes compartidas por tus contactos
+
+      .image-gallery-container.d-flex.flex-column.align-items-center
+        if imagenes.length === 0
+          .col-12.text-center.text-muted
+            p No hay imágenes compartidas todavía.
+        else
+          each imagen in imagenes
+            .image-card-wrapper.mb-5
+              .image-card.p-3.shadow-lg
+                .image-frame 
+                  img.img-fluid(src=imagen.ruta_imagen alt=imagen.titulo)
+                .card-info.text-center.pt-3
+                  h5.image-title= imagen.titulo
+                  p.image-description= imagen.descripcion
+                  small.image-author.text-muted Publicado por #{imagen.autor_nombre} #{imagen.autor_apellido}
+
+                  .image-actions.mt-3
+                    button.btn.btn-link.icon-btn(type="button" data-bs-toggle="modal" data-bs-target=`#shareModal-${imagen.imagen_id}`)
+                      i.fas.fa-share-alt
+                    button.btn.btn-link.icon-btn.ms-3(type="button" data-bs-toggle="modal" data-bs-target=`#commentModal-${imagen.imagen_id}`)
+                      i.fas.fa-comment
+
+            // --- Modales para Compartir y Comentar Imagen ---
+            .modal.fade(id=`shareModal-${imagen.imagen_id}` tabindex="-1" aria-labelledby=`shareModalLabel-${imagen.imagen_id}` aria-hidden="true")
+              .modal-dialog.modal-dialog-centered
+                .modal-content
+                  .modal-header
+                    h5.modal-title(id=`shareModalLabel-${imagen.imagen_id}`) Compartir #{imagen.titulo}
+                    button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+                  .modal-body
+                    form(method="POST" action="/compartir")
+                      input(type="hidden" name="imagen_id" value=imagen.imagen_id)
+                      .mb-3
+                        label.form-label(for=`shareFriendSelect-${imagen.imagen_id}`) Selecciona un amigo:
+                        select.form-select(id=`shareFriendSelect-${imagen.imagen_id}` name="usuario_destino" required)
+                          option(value="") -- Selecciona un usuario --
+                          if usuariosRed && usuariosRed.length > 0
+                            each u in usuariosRed
+                              if u.id != session.usuario.id
+                                option(value=u.id)= u.nombre + ' ' + u.apellido
+                          else
+                            option(value="" disabled) No hay usuarios disponibles
+                      button.btn.btn-primary.w-100(type="submit") Compartir
+
+            .modal.fade(id=`commentModal-${imagen.imagen_id}` tabindex="-1" aria-labelledby=`commentModalLabel-${imagen.imagen_id}` aria-hidden="true")
+              .modal-dialog.modal-dialog-centered
+                .modal-content
+                  .modal-header
+                    h5.modal-title(id=`commentModalLabel-${imagen.imagen_id}`) Comentarios para #{imagen.titulo}
+                    button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+                  .modal-body
+                    // Sección para mostrar comentarios existentes
+                    .comments-display.mb-3(id=`comentarios-imagen-${imagen.imagen_id}`)
+                      if imagen.comentarios && imagen.comentarios.length > 0
+                        each comentario in imagen.comentarios
+                          .comment-item.mb-2.pb-2.border-bottom
+                            strong #{comentario.autor_comentario_nombre} #{comentario.autor_comentario_apellido || ''}:
+                            p.mb-0.comment-content= comentario.contenido
+                            small.text-muted.comment-date= new Date(comentario.creado_en).toLocaleString()
+                      else
+                        p.text-muted No hay comentarios aún.
+
+                    // Formulario para añadir nuevo comentario
+                    form(method="POST" action="/comentarios/agregar" class="add-comment-form")
+                      input(type="hidden" name="imagen_id" value=imagen.imagen_id)
+                      .mb-3
+                        label.form-label(for=`commentContent-${imagen.imagen_id}`) Añadir un comentario:
+                        textarea.form-control(id=`commentContent-${imagen.imagen_id}` name="contenido" rows="3" placeholder="Escribe tu comentario aquí..." required)
+                      button.btn.btn-primary.w-100(type="submit") Enviar Comentario
+
+    // --- Modal para Subir Imagen ---
+    .modal.fade(id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true")
+      .modal-dialog.modal-dialog-centered
+        .modal-content
+          .modal-header
+            h5.modal-title(id="uploadImageModalLabel") Subir Nueva Imagen
+            button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+          .modal-body
+            form#formSubirImagen(method="POST" action="/imagenes/subir" enctype="multipart/form-data")
+              .mb-3
+                label.form-label(for="titulo") Título de la imagen
+                input.form-control(type="text" name="titulo" required)
+              .mb-3
+                label.form-label(for="descripcion") Descripción
+                textarea.form-control(name="descripcion" rows="3" required)
+              .mb-3
+                label.form-label(for="imagen") Seleccionar imagen
+                input.form-control(type="file" name="imagen" accept="image/*" required)
+              
+              // --- Elegir álbum o crear uno ---
+              .mb-3
+                label.form-label(for="albumSelect") Añadir a Álbum:
+                select.form-select(id="albumSelect" name="album_id")
+                  option(value="") -- Selecciona un álbum existente --
+                  if albums && albums.length > 0
+                    each album in albums
+                      option(value=album.id)= album.titulo
+                  option(value="new_album") -- Crear nuevo álbum --
+                
+                // Campo para nuevo álbum (oculto por defecto, visible con JS)
+                input.form-control.mt-2(type="text" id="newAlbumName" name="new_album_name" placeholder="Nombre del nuevo álbum" style="display: none;")
+
+              button.btn.btn-primary.mt-3(type="submit") Publicar Imagen
+
+    // --- Modal para Evento ---
+    .modal.fade(id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true")
+      .modal-dialog.modal-dialog-centered.modal-lg // Modal más grande para el calendario
+      .modal-content
+        .modal-header
+          h5.modal-title(id="eventModalLabel") Calendario de Eventos
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body
+          h4.text-center.mb-4 Eventos Programados
+          .calendar-placeholder.mb-5.text-center
+            img(src="https://placehold.co/600x400/ede4db/3e2723?text=Calendario+de+Eventos" alt="Calendario de Eventos" class="img-fluid rounded shadow-sm")
+            p.text-muted.mt-2 (Funcionalidad de calendario aquí en el futuro)
+          
+          hr.my-4
+          
+          h4.text-center.mb-4 Agendar Nuevo Evento
+          form#scheduleEventForm
+            .mb-3
+              label.form-label(for="eventName") Nombre del Evento:
+              input.form-control(type="text" id="eventName" name="eventName" required)
+            .mb-3
+              label.form-label(for="eventDate") Fecha:
+              input.form-control(type="date" id="eventDate" name="eventDate" required)
+            .mb-3
+              label.form-label(for="eventTime") Hora:
+              input.form-control(type="time" id="eventTime" name="eventTime")
+            .mb-3
+              label.form-label(for="eventDescription") Descripción:
+              textarea.form-control(id="eventDescription" name="eventDescription" rows="3")
+            .mb-3
+              label.form-label(for="inviteFriends") Invitar Amigos:
+              select.form-select(id="inviteFriends" name="inviteFriends" multiple)
+                // Aquí se cargarán los amigos del usuario (vista)
+                if usuariosRed && usuariosRed.length > 0
+                  each u in usuariosRed
+                    if u.id != session.usuario.id
+                      option(value=u.id)= u.nombre + ' ' + u.apellido
+                else
+                  option(value="" disabled) No hay amigos para invitar
+                
+            button.btn.btn-primary.w-100.mt-3(type="submit") Agendar Evento
+
+    // --- Modal para Buscar Amigos ---
+    .modal.fade(id="searchFriendsModal" tabindex="-1" aria-labelledby="searchFriendsModalLabel" aria-hidden="true")
+      .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title(id="searchFriendsModalLabel") Buscar Amigos
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        .modal-body
+          form#searchFriendsForm.mb-4
+            .mb-3
+              label.form-label(for="searchFriendName") Nombre del amigo
+              input.form-control(type="text" id="searchFriendName" name="nombre" placeholder="Buscar por nombre" required)
+            button.btn.btn-custom-primary.mt-2(type="submit") Buscar
+
+          #searchResultsContainer.mt-4.text-start
+            p.text-muted Ingresa un nombre para buscar amigos.
+
+    // Scripts de Bootstrap JS y tu JS personalizado
+    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")
+    script(src="/js/app.js")

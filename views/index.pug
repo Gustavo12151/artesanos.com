@@ -1,0 +1,46 @@
+extends layout
+
+block content
+  // Sección Principal (Hero Section)
+  // Esta sección tendrá un fondo y estilos prominentes para la bienvenida.
+  .hero-section.text-center.py-16.px-4
+    .container.mx-auto
+      h1.display-4.hero-title.mb-4 Bienvenido a Artesanos.com
+      p.lead.hero-subtitle.mb-5
+        | Una vibrante red social para artistas, creadores y amantes del arte.
+        | Conecta, comparte y descubre la belleza de las creaciones hechas a mano.
+      .call-to-action.mt-8
+        // Botones con clases personalizadas para estilo
+        a.btn.btn-lg.btn-custom-primary.mx-2(href="/login") Iniciar Sesión
+        a.btn.btn-lg.btn-custom-secondary.mx-2(href="/register") Registrarse
+
+  // Sección de Características/Propósito
+  // Aquí destacaremos los beneficios de la plataforma.
+  .features-section.py-12.px-4.bg-light
+    .container.mx-auto
+      h2.section-title.text-center.mb-8 Descubre lo que puedes hacer
+      .row.justify-content-center
+        .col-md-4.mb-4
+          .feature-card.p-6.text-center.rounded.shadow-sm
+            // Icono de Font Awesome para "Muestra tu Arte"
+            i.feature-icon.fas.fa-paint-brush.mb-3
+            h3.text-xl.font-semibold.mb-2 Muestra tu Arte
+            p Sube tus creaciones, comparte tu proceso y recibe el reconocimiento que mereces.
+        .col-md-4.mb-4
+          .feature-card.p-6.text-center.rounded.shadow-sm
+            // Icono de Font Awesome para "Conéctate"
+            i.feature-icon.fas.fa-users.mb-3
+            h3.text-xl.font-semibold.mb-2 Conéctate
+            p Encuentra a otros artesanos, colabora en proyectos y haz crecer tu comunidad.
+        .col-md-4.mb-4
+          .feature-card.p-6.text-center.rounded.shadow-sm
+            // Icono de Font Awesome para "Descubre"
+            i.feature-icon.fas.fa-compass.mb-3
+            h3.text-xl.font-semibold.mb-2 Descubre
+            p Explora una galería infinita de obras únicas e inspírate con el talento de la comunidad.
+
+  // Sección de Llamada a la Acción Final (Opcional, para futura expansión)
+  // .cta-bottom.text-center.py-10.px-4
+  //   .container.mx-auto
+  //     h2.section-title.mb-4 Únete a la comunidad de Artesanos hoy
+  //     a.btn.btn-lg.btn-custom-tertiary(href="/register") ¡Empieza Ahora!

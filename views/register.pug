@@ -1,0 +1,26 @@
+extends layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6
+        h2.text-center.mb-4 Registro
+        if mensaje
+          .alert.alert-warning= mensaje
+        form(method="POST" action="/register")
+          .mb-3
+            label.form-label(for="nombre") Nombre
+            input.form-control(type="text" name="nombre" required)
+          .mb-3
+            label.form-label(for="apellido") Apellido
+            input.form-control(type="text" name="apellido" required)
+          .mb-3
+            label.form-label(for="email") Email
+            input.form-control(type="email" name="email" required)
+          .mb-3
+            label.form-label(for="contraseña") Contraseña
+            input.form-control(type="password" name="contraseña" required)
+          button.btn.btn-success.w-100(type="submit") Registrarme
+        p.text-center.mt-3
+          | ¿Ya tenés cuenta?
+          a(href="/login") Ingresar aquí

@@ -1,0 +1,167 @@
+//- views/perfil.pug
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{title ? title : 'Perfil de Usuario'} - Artesanos.com
+    
+    // Enlaces a Google Fonts (para Playfair Display e Inter)
+    link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap", rel="stylesheet")
+
+    // Enlaces a Bootstrap CSS y tu CSS personalizado
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+    link(rel="stylesheet", href="/css/styles.css") 
+    
+    // Enlace a Font Awesome para los iconos
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css")
+
+  <body>
+    // Navbar (Copia del Navbar de interfaz.pug)
+    nav.navbar.navbar-expand-lg.fixed-top
+      .container
+        a.navbar-brand(href="/interfaz") Artesanos.com
+
+        .d-flex.align-items-center
+          .dropdown.me-3
+            button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")
+              | 🔔 Notificaciones
+              if solicitudesPendientes && solicitudesPendientes.length > 0
+                span.badge.bg-danger.ms-1= solicitudesPendientes.length
+            ul.dropdown-menu
+              if solicitudesPendientes && solicitudesPendientes.length > 0
+                each solicitud in solicitudesPendientes
+                  li.dropdown-item
+                    .d-flex.flex-column
+                      span.fw-bold Solicitud de amistad de:
+                      a.text-decoration-none(href=`/perfil/${solicitud.solicitante_id}`)
+                        strong #{solicitud.nombre} #{solicitud.apellido || ''} (#{solicitud.username})
+                      .mt-2
+                        button.btn.btn-sm.btn-success.me-2(onclick=`aceptarSolicitud(${solicitud.solicitud_id})`) Aceptar
+                        button.btn.btn-sm.btn-danger(onclick=`rechazarSolicitud(${solicitud.solicitud_id})`) Rechazar
+                    hr.my-1
+              else
+                li
+                  a.dropdown-item(href="#") No hay notificaciones nuevas
+
+          .dropdown
+            button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")
+              | 👤 Mi Perfil
+            ul.dropdown-menu
+              li
+                a.dropdown-item(href="/perfil") Ver perfil
+              li
+                a.dropdown-item(href="/logout") Cerrar sesión
+
+    // Contenido principal del perfil
+    .main-content-wrapper.container.py-5
+      .row.align-items-center.mb-4
+        .col-md-3.text-center
+          img.profile-img.img-fluid.rounded-circle(src=usuario.imagen_principal || 'https://placehold.co/150x150/8a8a8a/ffffff?text=Perfil' alt="Imagen de Perfil")
+        .col-md-9.text-center.text-md-start
+          h2.profile-name #{usuario.nombre} #{usuario.apellido} (#{usuario.username})
+          p.profile-email.text-muted #{usuario.email}
+          if isOwnProfile
+            a.btn.btn-custom-primary.btn-sm(href="/perfil/editar") Editar Perfil
+          else
+            // Aquí puedes añadir botones de amistad si fuera necesario
+            // button.btn.btn-outline-primary.btn-sm Enviar Solicitud de Amistad
+
+      hr.my-4
+
+      .profile-info.mb-4
+        h4 Información Personal
+        p
+          strong Sobre mí: 
+          | #{usuario.informacion_personal || 'No hay información personal disponible.'}
+        p
+          strong Intereses: 
+          | #{usuario.intereses || 'No hay intereses registrados.'}
+        p
+          strong Antecedentes: 
+          | #{usuario.antecedentes || 'No hay antecedentes laborales/académicos registrados.'}
+        p
+          strong Modo Portafolio: 
+          | #{usuario.modo_portafolio ? 'Activado' : 'Desactivado'}
+      
+      hr.my-4
+
+      h3.mb-3 Imágenes de #{usuario.nombre}
+      .image-gallery-container.d-flex.flex-column.align-items-center
+        if imagenes.length === 0
+          .col-12.text-center.text-muted
+            p Este usuario aún no ha publicado imágenes.
+        else
+          each imagen in imagenes
+            .image-card-wrapper.mb-5
+              .image-card.p-3.shadow-lg
+                .image-frame 
+                  img.img-fluid(src=imagen.ruta_imagen alt=imagen.titulo)
+                .card-info.text-center.pt-3
+                  h5.image-title= imagen.titulo
+                  p.image-description= imagen.descripcion
+                  small.image-date.text-muted Publicado el #{new Date(imagen.creado_en).toLocaleDateString()}
+
+                  .image-actions.mt-3
+                    // Si es tu propio perfil, podrías añadir opciones como editar/eliminar imagen
+                    if isOwnProfile
+                      // button.btn.btn-link.icon-btn Editar
+                      // button.btn.btn-link.icon-btn Eliminar
+                    else
+                      button.btn.btn-link.icon-btn(type="button" data-bs-toggle="modal" data-bs-target=`#shareModal-${imagen.imagen_id}`)
+                        i.fas.fa-share-alt
+                    button.btn.btn-link.icon-btn.ms-3(type="button" data-bs-toggle="modal" data-bs-target=`#commentModal-${imagen.imagen_id}`)
+                      i.fas.fa-comment
+
+            // --- Modales para Compartir y Comentar Imagen (Copia de interfaz.pug, ajustados) ---
+            .modal.fade(id=`shareModal-${imagen.imagen_id}` tabindex="-1" aria-labelledby=`shareModalLabel-${imagen.imagen_id}` aria-hidden="true")
+              .modal-dialog.modal-dialog-centered
+                .modal-content
+                  .modal-header
+                    h5.modal-title(id=`shareModalLabel-${imagen.imagen_id}`) Compartir #{imagen.titulo}
+                    button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+                  .modal-body
+                    form(method="POST" action="/compartir")
+                      input(type="hidden" name="imagen_id" value=imagen.imagen_id)
+                      .mb-3
+                        label.form-label(for=`shareFriendSelect-${imagen.imagen_id}`) Selecciona un amigo:
+                        select.form-select(id=`shareFriendSelect-${imagen.imagen_id}` name="usuario_destino" required)
+                          option(value="") -- Selecciona un usuario --
+                          //- usuariosRed debe pasarse desde interfaz.js a perfil.pug para este modal
+                          if usuariosRed && usuariosRed.length > 0
+                            each u in usuariosRed
+                              if u.id != session.usuario.id
+                                option(value=u.id)= u.nombre + ' ' + u.apellido
+                          else
+                            option(value="" disabled) No hay usuarios disponibles
+                      button.btn.btn-primary.w-100(type="submit") Compartir
+
+            .modal.fade(id=`commentModal-${imagen.imagen_id}` tabindex="-1" aria-labelledby=`commentModalLabel-${imagen.imagen_id}` aria-hidden="true")
+              .modal-dialog.modal-dialog-centered
+                .modal-content
+                  .modal-header
+                    h5.modal-title(id=`commentModalLabel-${imagen.imagen_id}`) Comentarios para #{imagen.titulo}
+                    button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+                  .modal-body
+                    // Sección para mostrar comentarios existentes
+                    .comments-display.mb-3(id=`comentarios-imagen-${imagen.imagen_id}`)
+                      if imagen.comentarios && imagen.comentarios.length > 0
+                        each comentario in imagen.comentarios
+                          .comment-item.mb-2.pb-2.border-bottom
+                            strong #{comentario.autor_comentario_nombre} #{comentario.autor_comentario_apellido || ''}:
+                            p.mb-0.comment-content= comentario.contenido
+                            small.text-muted.comment-date= new Date(comentario.creado_en).toLocaleString()
+                      else
+                        p.text-muted No hay comentarios aún.
+
+                    // Formulario para añadir nuevo comentario
+                    form(method="POST" action="/comentarios/agregar" class="add-comment-form")
+                      input(type="hidden" name="imagen_id" value=imagen.imagen_id)
+                      .mb-3
+                        label.form-label(for=`commentContent-${imagen.imagen_id}`) Añadir un comentario:
+                        textarea.form-control(id=`commentContent-${imagen.imagen_id}` name="contenido" rows="3" placeholder="Escribe tu comentario aquí..." required)
+                      button.btn.btn-primary.w-100(type="submit") Enviar Comentario
+
+    // Scripts de Bootstrap JS y tu JS personalizado
+    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")
+    script(src="/js/app.js")
