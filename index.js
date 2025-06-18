@@ -1,4 +1,4 @@
-// app.js - configuración inicial del proyecto Artesanos.com
+// index.js - configuración inicial del proyecto Artesanos.com
 
 const express = require('express');
 const path = require('path');
