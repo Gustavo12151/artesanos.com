@@ -8,8 +8,17 @@ const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const http = require('http');
 const { Server } = require('socket.io');
+const fs = require('fs'); // 👈 Asegurate de tener este require
 
 const app = express();
+
+// ✅ Crear carpeta /public/uploads si no existe
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Carpeta /public/uploads creada automáticamente');
+}
+
 
 // --- INICIO DE MIDDLEWARES IMPORTANTES (EL ORDEN ES CRÍTICO) ---
 // Sirve archivos estáticos (CSS, JS, imágenes)
