@@ -37,10 +37,10 @@ app.set('views', path.join(__dirname, 'views'));
 // Conexión MySQL
 const db = mysql.createConnection({
   port:3306,
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'artesano'
+  host: 'mysql-gustavo151.alwaysdata.net',
+  user: '419053',
+  password: 'laboratorio2',
+  database: 'gustavo151_artesano'
 });
 
 db.connect(err => {
