@@ -131,7 +131,7 @@ app.use((req, res, next) => {
 
 
 // Inicio del servidor HTTP (no de la app de Express directamente)
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
