@@ -35,7 +35,9 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 // Conexión MySQL
-const db = mysql.createConnection({
+// Pool de conexiones MySQL
+const db = mysql.createPool({
+  connectionLimit: 10,
   port: 3306,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -43,11 +45,8 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME
 });
 
+console.log('✅ Pool de conexiones MySQL configurado');
 
-db.connect(err => {
-  if (err) throw err;
-  console.log('✅ Conectado a la base de datos MySQL');
-});
 
 // Middleware para compartir la conexión DB y la sesión en el objeto req/res.locals
 app.use((req, res, next) => {
