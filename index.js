@@ -22,7 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // --- INICIO DE MIDDLEWARES IMPORTANTES (EL ORDEN ES CRÍTICO) ---
 // Sirve archivos estáticos (CSS, JS, imágenes)
-app.use(express.static("./public"));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Procesadores del cuerpo de la petición para formularios y JSON
 app.use(bodyParser.urlencoded({ extended: false })); // Para datos de formularios URL-encoded
