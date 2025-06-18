@@ -38,9 +38,9 @@ app.set('views', path.join(__dirname, 'views'));
 const db = mysql.createConnection({
   port:3306,
   host: 'localhost',
-  user: 'u219074299_gustavo',
-  password: 'Z9Bmel8a8',
-  database: 'u219074299_artesano'
+  user: 'root',
+  password: '',
+  database: 'artesano'
 });
 
 db.connect(err => {
